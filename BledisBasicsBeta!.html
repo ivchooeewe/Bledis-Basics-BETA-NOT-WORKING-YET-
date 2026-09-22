@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bledi's Basics BETA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body class="bg-amber-100 text-slate-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-yellow-300 border-4 border-black rounded-xl p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        
+        <!-- GAME TITLE -->
+        <h1 class="text-3xl font-black text-center mb-1 tracking-wide text-green-700 uppercase">
+            Bledi's Basics
+        </h1>
+        <p class="text-center font-black text-sm text-red-600 tracking-widest uppercase mb-6">
+            BETA ACCESS
+        </p>
+
+        <!-- VIEW 1: WAITLIST FORM (Default view for new visitors) -->
+        <div id="waitlist-container">
+            <p class="text-center font-bold text-lg mb-6 text-slate-800">
+                Join the Beta Waitlist
+            </p>
+
+            <form id="waitlist-form" onsubmit="handleWaitlistSubmit(event)" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-bold uppercase tracking-wider text-slate-900 mb-1">
+                        Username
+                    </label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="Enter your username" 
+                        class="w-full px-4 py-3 bg-white border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 font-bold text-slate-900 placeholder-slate-400"
+                    />
+                </div>
+
+                <button 
+                    type="submit" 
+                    id="submit-btn" 
+                    class="w-full bg-green-500 hover:bg-green-600 border-2 border-black text-white font-extrabold text-lg py-3 px-4 rounded-lg transition duration-150 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:opacity-50"
+                >
+                    Join the Waitlist
+                </button>
+            </form>
+
+            <!-- Status message feedback box -->
+            <div id="status-message" class="hidden mt-4 p-3 border-2 border-black rounded-lg text-center font-bold text-sm"></div>
+        </div>
+
+        <!-- VIEW 2: ACCEPTED PLAYER PAGE (Shown after opening the Accept link from email) -->
+        <div id="access-granted-container" class="hidden text-center">
+            <div class="my-4 p-4 border-2 border-black bg-green-200 rounded-lg">
+                <p class="font-extrabold text-green-900 text-xl uppercase mb-1">BETA ACCESS GRANTED!</p>
+                <p class="text-sm font-bold text-slate-800" id="welcome-user-text">Welcome to Bledi's Basics BETA!</p>
+            </div>
+
+            <!-- UNCLICKABLE PLAY BUTTON FOR NOW -->
+            <button 
+                disabled 
+                class="w-full bg-slate-400 border-2 border-black text-slate-700 font-black text-2xl py-4 px-4 rounded-lg cursor-not-allowed opacity-75 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            >
+                PLAY (COMING SOON)
+            </button>
+            <p class="text-xs font-bold text-slate-600 mt-3">The play button is currently disabled while the beta servers prepare.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // REPLACE THESE 3 KEYS WITH YOUR ACTUAL EMAILJS KEYS:
+        const PUBLIC_KEY = "80elZbvVpMXxizexE";
+        const SERVICE_ID = "service_fheqazo";
+        const TEMPLATE_ID = "template_wbn13m9";
+
+        // Initialize EmailJS
+        emailjs.init(PUBLIC_KEY);
+
+        // 1. Check if the page was opened from an Accept link in email
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAccepted = urlParams.get('access');
+        const acceptedUser = urlParams.get('user');
+
+        if (isAccepted === 'true') {
+            document.getElementById('waitlist-container').classList.add('hidden');
+            document.getElementById('access-granted-container').classList.remove('hidden');
+
+            if (acceptedUser) {
+                document.getElementById('welcome-user-text').innerText = "Welcome " + decodeURIComponent(acceptedUser) + "! You have been accepted to test Bledi's Basics BETA.";
+            }
+        }
+
+        // 2. Handle form submission when user clicks Join the Waitlist
+        function handleWaitlistSubmit(event) {
+    event.preventDefault();
+
+    const usernameInput = document.getElementById("username").value.trim();
+    const submitBtn = document.getElementById("submit-btn");
+    const statusMsg = document.getElementById("status-message");
+
+    if (!usernameInput) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Sending...";
+
+    // Ensure the link starts with a valid http/https protocol for email clients
+    let currentUrl = window.location.href.split('?')[0];
+    if (currentUrl.startsWith('file://')) {
+        // Fallback for local testing if running as a raw file
+        currentUrl = "http://127.0.0.1:5500/index.html"; 
+    }
+
+    const acceptUrl = currentUrl + "?access=true&user=" + encodeURIComponent(usernameInput);
+
+    const templateParams = {
+        from_name: usernameInput,
+        message: usernameInput + " really wants to test Bledis Basics!",
+        to_email: "ivailodimitrov2012@gmail.com",
+        accept_link: acceptUrl
+    };
+
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+        .then(function(response) {
+            statusMsg.className = "mt-4 p-3 border-2 border-black rounded-lg text-center font-bold text-sm bg-green-200 text-green-900 block";
+            statusMsg.innerText = "Success! " + usernameInput + " joined Bledi's Basics BETA waitlist!";
+            document.getElementById("username").value = "";
+        })
+        .catch(function(error) {
+            statusMsg.className = "mt-4 p-3 border-2 border-black rounded-lg text-center font-bold text-sm bg-red-200 text-red-900 block";
+            statusMsg.innerText = "Error sending waitlist request.";
+            console.error("EmailJS Error:", error);
+        })
+        .finally(function() {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Join the Waitlist";
+        });
+
+        }
+    </script>
+</body>
+</html>
